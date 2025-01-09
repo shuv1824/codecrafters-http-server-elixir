@@ -6,15 +6,26 @@ defmodule Server do
   end
 
   def listen() do
-    # You can use print statements as follows for debugging, they'll be visible when running tests.
-    IO.puts("Logs from your program will appear here!")
-
-    # Uncomment this block to pass the first stage
-
     # Since the tester restarts your program quite often, setting SO_REUSEADDR
     # ensures that we don't run into 'Address already in use' errors
-    {:ok, socket} = :gen_tcp.listen(4221, [:binary, active: false, reuseaddr: true])
-    {:ok, _client} = :gen_tcp.accept(socket)
+    port = 4221
+
+    {:ok, socket} =
+      :gen_tcp.listen(
+        port,
+        [:binary, active: false, reuseaddr: true]
+      )
+
+    case :gen_tcp.accept(socket) do
+      {:ok, client} ->
+        IO.puts("connection established")
+        data = :unicode.characters_to_binary("HTTP/1.1 200 OK\r\n\r\n")
+        :gen_tcp.send(client, data)
+
+      other ->
+        IO.puts("could not establish connection")
+        other
+    end
   end
 end
 
